@@ -22,13 +22,16 @@ def go(args):
     run = wandb.init(project="nyc_airbnb", group="cleaning", save_code=True)
     artifact_local_path = run.use_artifact(args.input_artifact).file()
     df = pd.read_csv(artifact_local_path)
+    logger.info('Dataset loaded')
     # Drop outliers
     min_price = args.min_price
     max_price = args.max_price
     idx = df['price'].between(min_price, max_price)
     df = df[idx].copy()
+    logger.info("Outliers removed")
     # Convert last_review to datetime
     df['last_review'] = pd.to_datetime(df['last_review'])
+    logger.info('last_review column coverted to datatime')
 
     idx = df['longitude'].between(-74.25, -73.50) & df['latitude'].between(40.5, 41.2)
     df = df[idx].copy()
@@ -41,8 +44,10 @@ def go(args):
      type=args.output_type,
      description=args.output_description,
  )
+    logger.info('Artifact created')
     artifact.add_file("clean_sample.csv")
     run.log_artifact(artifact)
+    logger.info("Artifact logged to weights and biases")
 
 
 # TODO: In the code below, fill in the data type for each argumemt. The data type should be str, float or int. 
@@ -53,43 +58,43 @@ if __name__ == "__main__":
   
     parser.add_argument(
         "--input_artifact", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
+        type = str,
+        help = "Fully-qualified name for the input artifact",
         required = True
     )
 
     parser.add_argument(
         "--output_artifact", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
+        type = str,
+        help = 'Name for the output artifact',
         required = True
     )
 
     parser.add_argument(
         "--output_type", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
+        type = str,
+        help = "Type of the output artifact",
         required = True
     )
 
     parser.add_argument(
         "--output_description", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
+        type = str,
+        help = 'A brief description of the output artifact',
         required = True
     )
 
     parser.add_argument(
         "--min_price", 
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
+        type = float,
+        help = 'A value below which a price will be considered an outlier',
         required = True
     )
 
     parser.add_argument(
         "--max_price",
-        type = ## INSERT TYPE HERE: str, float or int,
-        help = ## INSERT DESCRIPTION HERE,
+        type = float,
+        help = 'A value above which a price will be considered an outlier',
         required = True
     )
 
