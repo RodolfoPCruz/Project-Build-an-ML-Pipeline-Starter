@@ -75,6 +75,7 @@ def go(args):
     # Fit the pipeline sk_pipe by calling the .fit method on X_train and y_train
     # YOUR CODE HERE
     ######################################
+    sk_pipe.fit(X_train, y_train)
 
     # Compute r2 and MAE
     logger.info("Scoring")
@@ -88,15 +89,21 @@ def go(args):
 
     logger.info("Exporting model")
 
+
     # Save model package in the MLFlow sklearn format
     if os.path.exists("random_forest_dir"):
+        print('entrei_aqui')
         shutil.rmtree("random_forest_dir")
-
     ######################################
     # Save the sk_pipe pipeline as a mlflow.sklearn model in the directory "random_forest_dir"
     # HINT: use mlflow.sklearn.save_model
+
+    #os.mkdir('random_forest_dir')
+
     mlflow.sklearn.save_model(
         # YOUR CODE HERE
+        sk_pipe,
+        "random_forest_dir",
         input_example = X_train.iloc[:5]
     )
     ######################################
@@ -106,7 +113,7 @@ def go(args):
     artifact = wandb.Artifact(
         args.output_artifact,
         type = 'model_export',
-        description = 'Trained ranfom forest artifact',
+        description = 'Trained random forest artifact',
         metadata = rf_config
     )
     artifact.add_dir('random_forest_dir')
@@ -121,6 +128,7 @@ def go(args):
     # Now save the variable mae under the key "mae".
     # YOUR CODE HERE
     ######################################
+    run.summary['mae'] = mae
 
     # Upload to W&B the feture importance visualization
     run.log(
@@ -162,7 +170,8 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
     # 1 - A SimpleImputer(strategy="most_frequent") to impute missing values
     # 2 - A OneHotEncoder() step to encode the variable
     non_ordinal_categorical_preproc = make_pipeline(
-        # YOUR CODE HERE
+        SimpleImputer(strategy = 'most_frequent'),
+        OneHotEncoder(sparse_output = False)
     )
     ######################################
 
@@ -224,7 +233,8 @@ def get_inference_pipeline(rf_config, max_tfidf_features):
     # HINT: Use the explicit Pipeline constructor so you can assign the names to the steps, do not use make_pipeline
 
     sk_pipe = Pipeline(
-        steps =[
+        steps =[("preprocessor",preprocessor),
+                ("random_forest",random_forest)
         # YOUR CODE HERE
         ]
     )
